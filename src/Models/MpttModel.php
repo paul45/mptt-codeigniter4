@@ -59,7 +59,7 @@ class MpttModel extends Model
             return $this->insertWithoutParent($data,$returnID);
         }
     }
-    public function delete($id = NULL, bool $purge = false)
+    public function delete($id = NULL, bool $purge = false) //TODO
     {
         $this->db->transStart();
         $element = $this->select('arbre_gauche,arbre_droite')
@@ -87,7 +87,7 @@ class MpttModel extends Model
         $this->db->transComplete();
         return $this->db->transStatus();
     }
-    public function deplacer($id,$position,$index)
+    public function deplacer($id,$position,$index) //TODO
     {
         $this->db->transStart();
         $element = $this->select('arbre_gauche,arbre_droite')
