@@ -51,7 +51,7 @@ class MpttModel extends Model
         $this->tempData = [];
 
 
-        if (isset($data[$this->parent]) && $data[$this->parent] != '')
+        if (isset($data[$this->parentIdKey]) && $data[$this->parentIdKey] != '')
         {
             return $this->insertUnderParent($data,$returnID);
         } else
