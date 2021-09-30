@@ -4,12 +4,12 @@
     "authors": [
         {
             "name": "paul",
-            "email": "your@name.com"
+            "email": "paul.tallet.pinet@free.fr"
         }
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.3.0",
+        "php": "^7.3 || ^8.0",
         "codeigniter4/framework": "^4"
     },
     "autoload": {
