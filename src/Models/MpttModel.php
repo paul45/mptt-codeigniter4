@@ -38,11 +38,11 @@ class MpttModel extends Model
      */
     public function insert($data = null, bool $returnID = true)
     {
+        $data = $this->transformDataToArray($data, 'insert');
         if (! empty($this->tempData['data'])) {
             if (empty($data)) {
                 $data = $this->tempData['data'] ?? null;
             } else {
-                $data = $this->transformDataToArray($data, 'insert');
                 $data = array_merge($this->tempData['data'], $data);
             }
         }
