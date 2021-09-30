@@ -175,7 +175,7 @@ class MpttModel extends Model
     {
         $this->db->transStart();
         $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
-                    ->find($data[$this->parent]);
+                    ->find($data[$this->parentIdKey]);
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + 2
                                 WHERE '. $this->leftIdKey .' > '. $parent->{$this->rightIdKey} .'
