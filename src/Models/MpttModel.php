@@ -192,7 +192,7 @@ class MpttModel extends Model
             $this->db->transComplete();
             return false;
         }
-        $data->id = $this->insertID;
+        $data[$this->primaryKey] = $this->insertID;
         return $this->db->transComplete();
     }
     /**
@@ -209,23 +209,23 @@ class MpttModel extends Model
     protected function insertWithoutParent($data = null, bool $returnID = true)
     {
         $this->db->transStart();
-        $lastElement =$this->select(''. $this->rightIdKey .'')
+        $lastElement = $this->select(''. $this->rightIdKey .'')
                 ->orderby(''. $this->rightIdKey .'','desc')
                 ->limit(1)
                 ->find();
         if (isset($lastElement[0]))
         {
-            $data[$this->leftIdKey]=$lastElement[0]->{$this->rightIdKey}+1;
-            $data[$this->rightIdKey]=$lastElement[0]->{$this->rightIdKey}+2;
+            $data[$this->leftIdKey] = $lastElement[0]->{$this->rightIdKey}+1;
+            $data[$this->rightIdKey] = $lastElement[0]->{$this->rightIdKey}+2;
         }else{
-            $data[$this->leftIdKey]=1;
-            $data[$this->rightIdKey]=2;
+            $data[$this->leftIdKey] = 1;
+            $data[$this->rightIdKey] = 2;
         }
         if( ! parent::insert($data,$returnID)){
             $this->db->transComplete();
             return false;
         }
-        $data->id=$this->insertID;
+        $data[$this->primaryKey] = $this->insertID;
         return $this->db->transComplete();
     }
 }
