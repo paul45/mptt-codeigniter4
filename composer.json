@@ -1,0 +1,20 @@
+{
+    "name": "paul45/mptt-codeigniter",
+    "description": "mptt model for codeigniter 4",
+    "authors": [
+        {
+            "name": "paul",
+            "email": "your@name.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.0",
+        "codeigniter4/framework": "^4"
+    },
+    "autoload": {
+        "psr-4": {
+			"MpttCodeigniter4\\": "src"
+		}
+    }
+}
