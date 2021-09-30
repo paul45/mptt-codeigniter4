@@ -4,9 +4,11 @@
     "authors": [
         {
             "name": "paul",
-            "email": "paul.tallet.pinet@free.fr"
+            "email": "paul.tallet.pinet@free.fr",
+            "role": "Developer"
         }
     ],
+    "license": "MIT",
     "minimum-stability": "dev",
     "require": {
         "php": "^7.3 || ^8.0",
