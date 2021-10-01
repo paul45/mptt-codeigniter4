@@ -140,19 +140,22 @@ class MpttModel extends Model
         {
             $element->arbre_gauche = $element->arbre_gauche + $taille;
             $element->arbre_droite = $element->arbre_droite + $taille;
+            $order = 'ASC';
+        }else{
+            $order = 'DESC';
         }
         //move elements into new location
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche + '. $difference.'
                                 WHERE arbre_gauche >= '. $element->arbre_gauche .'
                                 AND arbre_gauche < '. $element->arbre_droite .'
-                                ORDER BY arbre_gauche DESC;');
+                                ORDER BY arbre_gauche '.$order.';');
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $difference.'
                                 WHERE arbre_droite > '. $element->arbre_gauche .'
                                 AND arbre_droite <= '. $element->arbre_droite .'
-                                ORDER BY arbre_droite DESC;');
+                                ORDER BY arbre_droite '.$order.';');
 
         //remove old space
         $this->db->simpleQuery('UPDATE '. $this->table .'
