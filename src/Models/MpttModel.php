@@ -130,7 +130,9 @@ class MpttModel extends Model
                                 SET arbre_gauche = arbre_gauche + '. $taille.'
                                 WHERE arbre_gauche >= '. $newLocation .'
                                 ORDER BY arbre_gauche DESC;');
-        /*
+        
+
+    
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $taille.'
                                 WHERE arbre_droite >= '. $newLocation .'
@@ -142,7 +144,7 @@ class MpttModel extends Model
             $element->arbre_droite = $element->arbre_droite + $taille;
         }
         //move elements into new location
-        $this->db->simpleQuery('UPDATE '. $this->table .'
+        /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche + '. $difference.'
                                 WHERE arbre_gauche >= '. $element->arbre_gauche .'
                                 ORDER BY arbre_gauche DESC;');
