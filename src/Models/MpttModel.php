@@ -104,24 +104,24 @@ class MpttModel extends Model
         {
             $reference = $this->select('arbre_gauche,arbre_droite')
                                 ->find($index);
+            $referenceleft = $reference->arbre_gauche;
+            $referenceright = $reference->arbre_droite;
+        }else{
+            $referenceleft = 0;
         }
         switch ($position) {
             case 'after':
-                $difference = $reference->arbre_droite - $element->arbre_gauche + 1;
-                $newLocation = $reference->arbre_droite + 1;
+                $difference = $referenceright - $element->arbre_gauche + 1;
+                $newLocation = $referenceright + 1;
                 break;
             case 'before':
-                $difference = $reference->arbre_gauche - $element->arbre_gauche;
-                $newLocation = $reference->arbre_gauche;
-                break;
-            case 'lastChild':
-                $difference = $reference->arbre_droite - $element->arbre_gauche;
-                $newLocation = $reference->arbre_droite;
+                $difference = $referenceleft - $element->arbre_gauche;
+                $newLocation = $referenceleft;
                 break;
             case 'firstChild':
             default:
-                $difference = $reference->arbre_gauche - $element->arbre_gauche + 1;
-                $newLocation = $reference->arbre_gauche + 1;
+                $difference = $referenceleft - $element->arbre_gauche + 1;
+                $newLocation = $referenceleft + 1;
                 break;
         }
 
