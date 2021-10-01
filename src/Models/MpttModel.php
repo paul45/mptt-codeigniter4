@@ -129,12 +129,12 @@ class MpttModel extends Model
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche + '. $taille.'
                                 WHERE arbre_gauche >= '. $newLocation .'
-                                ORDER BY arbre_gauche ;');
+                                ORDER BY arbre_gauche DESC;');
         
                                 $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $taille.'
                                 WHERE arbre_droite >= '. $newLocation .'
-                                ORDER BY arbre_droite ;');
+                                ORDER BY arbre_droite DESC;');
         // recalculate elements location
         if ($difference < 0)
         {
@@ -145,23 +145,23 @@ class MpttModel extends Model
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche + '. $difference.'
                                 WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                ORDER BY arbre_gauche ;');
+                                ORDER BY arbre_gauche DESC;');
         
                                 $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $difference.'
                                 WHERE arbre_droite <= '. $element->arbre_droite .'
-                                ORDER BY arbre_droite ;');
+                                ORDER BY arbre_droite DESC;');
 
         //remove old space
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche - '. $taille.'
                                 WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                ORDER BY arbre_gauche ;');
+                                ORDER BY arbre_gauche ASC;');
         
                                 $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $taille.'
                                 WHERE arbre_droite >= '. $element->arbre_droite .'
-                                ORDER BY arbre_droite ;');
+                                ORDER BY arbre_droite ASC;');
         
 
         $this->db->transComplete();
