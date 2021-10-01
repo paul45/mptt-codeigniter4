@@ -97,62 +97,72 @@ class MpttModel extends Model
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->arbre_droite - $element->arbre_gauche;
+        $taille = $element->arbre_droite - $element->arbre_gauche + 1;
 
+        $reference = NULL;
+        if ($index!=0)
+        {
+            $reference = $this->select('arbre_gauche,arbre_droite')
+                                ->find($index);
+        }
+        switch ($position) {
+            case 'after':
+                $difference = $reference->arbre_droite - $element->arbre_gauche + 1;
+                $newLocation = $reference->arbre_droite + 1;
+                break;
+            case 'before':
+                $difference = $reference->arbre_gauche - $element->arbre_gauche;
+                $newLocation = $reference->arbre_gauche;
+                break;
+            case 'lastChild':
+                $difference = $reference->arbre_droite - $element->arbre_gauche;
+                $newLocation = $reference->arbre_droite;
+                break;
+            case 'firstChild':
+            default:
+                $difference = $reference->arbre_gauche - $element->arbre_gauche + 1;
+                $newLocation = $reference->arbre_gauche + 1;
+                break;
+        }
+
+        //Create new location space
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche + 100000
-                                , arbre_droite = arbre_droite + 100000
-                                WHERE arbre_gauche >= '. $element->arbre_gauche .' 
-                                    AND arbre_droite <= '.$element->arbre_droite.';');
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche - '. ($taille+1).'
-                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                AND arbre_gauche <= 100000
+                                SET arbre_gauche = arbre_gauche + '. $taille.'
+                                WHERE arbre_gauche >= '. $newLocation .'
                                 ORDER BY arbre_gauche ;');
         
+                                $this->db->simpleQuery('UPDATE '. $this->table .'
+                                SET arbre_droite = arbre_droite + '. $taille.'
+                                WHERE arbre_droite >= '. $newLocation .'
+                                ORDER BY arbre_droite ;');
+        // recalculate elements location
+        if ($difference < 0)
+        {
+            $element->arbre_gauche = $element->arbre_gauche + $taille;
+            $element->arbre_droite = $element->arbre_droite + $taille;
+        }
+        //move elements into new location
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite - '. ($taille+1).'
-                                WHERE arbre_droite >= '. $element->arbre_gauche .'
-                                AND arbre_gauche <= 100000
+                                SET arbre_gauche = arbre_gauche + '. $difference.'
+                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
+                                ORDER BY arbre_gauche ;');
+        
+                                $this->db->simpleQuery('UPDATE '. $this->table .'
+                                SET arbre_droite = arbre_droite + '. $difference.'
+                                WHERE arbre_droite <= '. $element->arbre_droite .'
                                 ORDER BY arbre_droite ;');
 
-        if($position=='after')
-        {
-            $precedents = $this->select('arbre_gauche,arbre_droite')
-                                ->find($index);
-            $difference = $precedents->arbre_droite - $element->arbre_gauche;
-            $nouvelle_position = $precedents->arbre_droite + 1;
-        }else//first
-        {
-            if ($index!=0)
-            {
-                $parent = $this->select('arbre_gauche,arbre_droite')
-                                ->find($index);
-                $difference = $parent->arbre_gauche - $element->arbre_gauche;
-                $nouvelle_position = $parent->arbre_gauche + 1;
-            } else {
-                $difference = -$element->arbre_gauche;
-                $nouvelle_position = 1;
-            }
-        }
-         
+        //remove old space
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche + '. ($taille+1).'
-                                WHERE arbre_gauche >= '. $nouvelle_position .'
-                                AND arbre_gauche <= 100000
-                                ORDER BY arbre_gauche desc;');
-
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite + '. ($taille+1).'
-                                WHERE arbre_droite >= '. $nouvelle_position .'
-                                AND arbre_gauche <= 100000
-                                ORDER BY arbre_droite desc;');
-
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche - 99999 + '. ($difference).'
-                                , arbre_droite = arbre_droite - 99999 + '. ($difference).'
-                                WHERE arbre_gauche >= 100000;');
-
+                                SET arbre_gauche = arbre_gauche - '. $taille.'
+                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
+                                ORDER BY arbre_gauche ;');
+        
+                                $this->db->simpleQuery('UPDATE '. $this->table .'
+                                SET arbre_droite = arbre_droite + '. $taille.'
+                                WHERE arbre_droite >= '. $element->arbre_droite .'
+                                ORDER BY arbre_droite ;');
+        
 
         $this->db->transComplete();
         if ($this->db->transStatus() === FALSE)
