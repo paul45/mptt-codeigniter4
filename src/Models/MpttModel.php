@@ -193,7 +193,8 @@ class MpttModel extends Model
             return false;
         }
         $data[$this->primaryKey] = $this->insertID;
-        return $this->db->transComplete();
+        $result = $this->db->transComplete();
+        return $returnID ? $this->insertID : $result;
     }
     /**
      * Inserts data at the end of a MPTT. If an object is provided,
@@ -226,6 +227,7 @@ class MpttModel extends Model
             return false;
         }
         $data[$this->primaryKey] = $this->insertID;
-        return $this->db->transComplete();
+        $result = $this->db->transComplete();
+        return $returnID ? $this->insertID : $result;
     }
 }
