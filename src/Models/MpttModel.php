@@ -159,7 +159,7 @@ class MpttModel extends Model
                                 ORDER BY arbre_gauche ASC;');
         
                                 $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite + '. $taille.'
+                                SET arbre_droite = arbre_droite - '. $taille.'
                                 WHERE arbre_droite >= '. $element->arbre_droite .'
                                 ORDER BY arbre_droite ASC;');
         
