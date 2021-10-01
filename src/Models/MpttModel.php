@@ -59,34 +59,35 @@ class MpttModel extends Model
             return $this->insertWithoutParent($data,$returnID);
         }
     }
-    public function delete($id = NULL, bool $purge = false) //TODO
+    public function delete($id = NULL, bool $purge = false)
     {
         $this->db->transStart();
-        $element = $this->select('arbre_gauche,arbre_droite')
+        $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                             ->find($id);
         if($element == null){
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->arbre_droite - $element->arbre_gauche;
+        $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey};
         $this->db->simpleQuery('DELETE FROM '. $this->table .'
-                                WHERE arbre_gauche >= '.$element->arbre_gauche.' 
-                                    AND arbre_droite <= '.$element->arbre_droite.';');
+                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
+                                    AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche - '. ($taille+1).'
-                                WHERE arbre_gauche > '. $element->arbre_droite .'
-                                ORDER BY arbre_gauche ;');
+                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. ($taille+1).'
+                                WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
+                                ORDER BY '. $this->leftIdKey .' ;');
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite - '. ($taille+1).'
-                                WHERE arbre_droite > '. $element->arbre_droite .'
-                                ORDER BY arbre_droite ;');     
-        if( ! parent::delete($id)){
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. ($taille+1).'
+                                WHERE '. $this->rightIdKey .' > '. $element->{$this->rightIdKey} .'
+                                ORDER BY '. $this->rightIdKey .' ;');     
+        if( ! parent::delete($id, $purge)){
             $this->db->transComplete();
             return false;
         }
         $this->db->transComplete();
         return $this->db->transStatus();
     }
+    
     public function deplacer($id,$position,$index) //TODO
     {
         $this->db->transStart();
