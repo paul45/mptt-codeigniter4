@@ -141,7 +141,7 @@ class MpttModel extends Model
             $element->arbre_gauche = $element->arbre_gauche + $taille;
             $element->arbre_droite = $element->arbre_droite + $taille;
             $order = 'ASC';
-            $difference = $difference + $taille;
+            $difference = $difference - $taille;
         }else{
             $order = 'DESC';
         }
