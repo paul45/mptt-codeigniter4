@@ -130,10 +130,7 @@ class MpttModel extends Model
                                 SET arbre_gauche = arbre_gauche + '. $taille.'
                                 WHERE arbre_gauche >= '. $newLocation .'
                                 ORDER BY arbre_gauche DESC;');
-        echo'UPDATE '. $this->table .'
-        SET arbre_gauche = arbre_gauche + '. $taille.'
-        WHERE arbre_gauche >= '. $newLocation .'
-        ORDER BY arbre_gauche DESC;';
+        /*
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $taille.'
                                 WHERE arbre_droite >= '. $newLocation .'
@@ -166,7 +163,7 @@ class MpttModel extends Model
                                 WHERE arbre_droite >= '. $element->arbre_droite .'
                                 ORDER BY arbre_droite ASC;');
         
-
+*/
         $this->db->transComplete();
         if ($this->db->transStatus() === FALSE)
         {
