@@ -145,12 +145,12 @@ class MpttModel extends Model
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_gauche = arbre_gauche + '. $difference.'
                                 WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                AND arbre_droite <= '. $element->arbre_droite .'
+                                AND arbre_gauche < '. $element->arbre_droite .'
                                 ORDER BY arbre_gauche DESC;');
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET arbre_droite = arbre_droite + '. $difference.'
-                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
+                                WHERE arbre_droite > '. $element->arbre_gauche .'
                                 AND arbre_droite <= '. $element->arbre_droite .'
                                 ORDER BY arbre_droite DESC;');
 
