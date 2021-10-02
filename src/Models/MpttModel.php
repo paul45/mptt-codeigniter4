@@ -17,16 +17,9 @@ class MpttModel extends Model
      * @var string
      */
     protected $rightIdKey = 'right';
-    
-    /**
-    * The table's parent id key.
-    *
-    * @var string
-    */
-    protected $parentIdKey = 'parent';
 
     /**
-     * Inserts data into the database. If an object is provided,
+     * Inserts data at the end of a MPTT. If an object is provided,
      * it will attempt to convert it to an array.
      *
      * @param array|object|null $data
@@ -39,28 +32,82 @@ class MpttModel extends Model
     public function insert($data = null, bool $returnID = true)
     {
         $data = $this->transformDataToArray($data, 'insert');
-        if (! empty($this->tempData['data'])) {
-            if (empty($data)) {
-                $data = $this->tempData['data'] ?? null;
-            } else {
-                $data = array_merge($this->tempData['data'], $data);
-            }
-        }
 
-        $this->escape   = $this->tempData['escape'] ?? [];
-        $this->tempData = [];
+        return $this->insertWithoutParent($data, $returnID);
+    }
 
+    /**
+     * Inserts data under a referent in a MPTT. If an object is provided,
+     * it will attempt to convert it to an array.
+     *
+     * @param array|object|null $data
+     * @param bool              $returnID Whether insert ID should be returned or not.
+     *
+     * @throws ReflectionException
+     *
+     * @return BaseResult|false|int|object|string
+     */
+    public function insertUnderReferent($data = null, int $referentId = NULL, bool $returnID = true)
+    {
+        $data = $this->transformDataToArray($data, 'insert');
+        
 
-        if (isset($data[$this->parentIdKey]) && $data[$this->parentIdKey] != '')
+        if ($referentId != NULL)
         {
-            return $this->insertUnderParent($data,$returnID);
+            $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
+                        ->find($data[$this->parentIdKey]);
+
+            return $this->insertUnderParent($data, $parent->{$this->rightIdKey}, $returnID);
         } else
         {
-            return $this->insertWithoutParent($data,$returnID);
+            return $this->insertWithoutParent($data, $returnID);
         }
     }
-    public function delete($id = NULL, bool $purge = false)
+
+    /**
+     * Inserts data after a referent in a MPTT. If an object is provided,
+     * it will attempt to convert it to an array.
+     *
+     * @param array|object|null $data
+     * @param bool              $returnID Whether insert ID should be returned or not.
+     *
+     * @throws ReflectionException
+     *
+     * @return BaseResult|false|int|object|string
+     */
+    public function insertAfterReferent($data = null, int $referentId = NULL, bool $returnID = true)
     {
+        $data = $this->transformDataToArray($data, 'insert');
+        
+
+        if ($referentId != NULL)
+        {
+            $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
+                        ->find($data[$this->parentIdKey]);
+
+            return $this->insertAfterParent($data, $parent->{$this->rightIdKey}, $returnID);
+        } else
+        {
+            return $this->insertWithoutParent($data, $returnID);
+        }
+    }
+
+    /**
+     * Deletes a single record from the database where $id matches
+     *
+     * @param array|int|string|null $id    The rows primary key(s)
+     * @param bool                  $purge Allows overriding the soft deletes setting.
+     *
+     * @throws DatabaseException
+     *
+     * @return BaseResult|bool
+     */
+    public function delete($id = NULL, bool $purge = true)
+    {
+        if ($id && (is_numeric($id) || is_string($id))) {
+            $id = [$id];
+        }
+
         $this->db->transStart();
         $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                             ->find($id);
@@ -88,58 +135,69 @@ class MpttModel extends Model
         return $this->db->transStatus();
     }
     
-    public function deplacer($id,$position,$index) //TODO
+    /**
+     * move element and child in a MPTT. 
+     *
+     * @param int           $id of the element to move
+     * @param string        $position compared to the reference           
+     * @param int           $referentId  id of the reference
+     * 
+     * @throws ReflectionException
+     *
+     * @return BaseResult|false|int|object|string
+     */
+    public function deplacer($id, $position, $referentId)
     {
         $this->db->transStart();
-        $element = $this->select('arbre_gauche,arbre_droite')
+        $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                             ->find($id);
         if($element == null){
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->arbre_droite - $element->arbre_gauche + 1;
+        $taille = $element->rightIdKey - $element->{$this->leftIdKey} + 1;
 
         $reference = NULL;
-        if ($index!=0)
+        if ($referentId!=0)
         {
-            $reference = $this->select('arbre_gauche,arbre_droite')
-                                ->find($index);
-            $referenceleft = $reference->arbre_gauche;
-            $referenceright = $reference->arbre_droite;
+            $reference = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
+                                ->find($referentId);
+            $referenceLeft = $reference->{$this->leftIdKey};
+            $referenceRight = $reference->rightIdKey;
         }else{
-            $referenceleft = 0;
+            $referenceLeft = 0;
         }
         switch ($position) {
             case 'after':
-                $difference = $referenceright - $element->arbre_gauche + 1;
-                $newLocation = $referenceright + 1;
+                $difference = $referenceRight - $element->{$this->leftIdKey} + 1;
+                $newLocation = $referenceRight + 1;
                 break;
             case 'before':
-                $difference = $referenceleft - $element->arbre_gauche;
-                $newLocation = $referenceleft;
+                $difference = $referenceLeft - $element->{$this->leftIdKey};
+                $newLocation = $referenceLeft;
                 break;
             case 'firstChild':
             default:
-                $difference = $referenceleft - $element->arbre_gauche + 1;
-                $newLocation = $referenceleft + 1;
+                $difference = $referenceLeft - $element->{$this->leftIdKey} + 1;
+                $newLocation = $referenceLeft + 1;
                 break;
         }
 
         //Create new location space
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche + '. $taille.'
-                                WHERE arbre_gauche >= '. $newLocation .'
-                                ORDER BY arbre_gauche DESC;');
+                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + '. $taille.'
+                                WHERE '. $this->leftIdKey .' >= '. $newLocation .'
+                                ORDER BY '. $this->leftIdKey .' DESC;');
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite + '. $taille.'
-                                WHERE arbre_droite >= '. $newLocation .'
-                                ORDER BY arbre_droite DESC;');
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $taille.'
+                                WHERE '. $this->rightIdKey .' >= '. $newLocation .'
+                                ORDER BY '. $this->rightIdKey .' DESC;');
 
         // recalculate elements location
         if ($difference < 0)
         {
-            $element->arbre_gauche = $element->arbre_gauche + $taille;
-            $element->arbre_droite = $element->arbre_droite + $taille;
+            $element->{$this->leftIdKey} = $element->{$this->leftIdKey} + $taille;
+            $element->rightIdKey = $element->rightIdKey + $taille;
             $order = 'ASC';
             $difference = $difference - $taille;
         }else{
@@ -147,27 +205,27 @@ class MpttModel extends Model
         }
         //move elements into new location
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche + '. $difference .'
-                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                AND arbre_gauche < '. $element->arbre_droite .'
-                                ORDER BY arbre_gauche '.$order.';');
+                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + '. $difference .'
+                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .'
+                                AND '. $this->leftIdKey .' < '. $element->rightIdKey .'
+                                ORDER BY '. $this->leftIdKey .' '.$order.';');
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite + '. $difference .'
-                                WHERE arbre_droite > '. $element->arbre_gauche .'
-                                AND arbre_droite <= '. $element->arbre_droite .'
-                                ORDER BY arbre_droite '.$order.';');
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $difference .'
+                                WHERE '. $this->rightIdKey .' > '. $element->{$this->leftIdKey} .'
+                                AND '. $this->rightIdKey .' <= '. $element->rightIdKey .'
+                                ORDER BY '. $this->rightIdKey .' '.$order.';');
 
         //remove old space
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_gauche = arbre_gauche - '. $taille.'
-                                WHERE arbre_gauche >= '. $element->arbre_gauche .'
-                                ORDER BY arbre_gauche ASC;');
+                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. $taille.'
+                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .'
+                                ORDER BY '. $this->leftIdKey .' ASC;');
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET arbre_droite = arbre_droite - '. $taille.'
-                                WHERE arbre_droite >= '. $element->arbre_droite .'
-                                ORDER BY arbre_droite ASC;');
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. $taille.'
+                                WHERE '. $this->rightIdKey .' >= '. $element->rightIdKey .'
+                                ORDER BY '. $this->rightIdKey .' ASC;');
         
 
         $this->db->transComplete();
@@ -177,6 +235,7 @@ class MpttModel extends Model
         }
         return true;
     }
+
     /**
      * Inserts data under a parent into MPTT. If an object is provided,
      * it will attempt to convert it to an array.
@@ -188,22 +247,21 @@ class MpttModel extends Model
      *
      * @return BaseResult|false|int|object|string
      */
-    protected function insertUnderParent($data = null, bool $returnID = true)
+    private function insertUnderParent($data = null, int $parentRightKey, bool $returnID = true)
     {
         $this->db->transStart();
-        $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
-                    ->find($data[$this->parentIdKey]);
+        
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + 2
-                                WHERE '. $this->leftIdKey .' > '. $parent->{$this->rightIdKey} .'
+                                WHERE '. $this->leftIdKey .' > '. $parentRightKey .'
                                 ORDER BY '. $this->leftIdKey .' desc;');        
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + 2
-                                WHERE '. $this->rightIdKey .' >= '. $parent->{$this->rightIdKey} .'
+                                WHERE '. $this->rightIdKey .' >= '. $parentRightKey .'
                                 ORDER BY '. $this->rightIdKey .' desc;');        
 
-        $data[$this->leftIdKey] = $parent->{$this->rightIdKey};
-        $data[$this->rightIdKey] = $parent->{$this->rightIdKey}+1;
+        $data[$this->leftIdKey] = $parentRightKey;
+        $data[$this->rightIdKey] = $parentRightKey+1;
 
         if( ! parent::insert($data,$returnID)){
             $this->db->transComplete();
@@ -213,8 +271,9 @@ class MpttModel extends Model
         $result = $this->db->transComplete();
         return $returnID ? $this->insertID : $result;
     }
+
     /**
-     * Inserts data at the end of a MPTT. If an object is provided,
+     * Inserts data under a parent into MPTT. If an object is provided,
      * it will attempt to convert it to an array.
      *
      * @param array|object|null $data
@@ -224,7 +283,43 @@ class MpttModel extends Model
      *
      * @return BaseResult|false|int|object|string
      */
-    protected function insertWithoutParent($data = null, bool $returnID = true)
+    private function insertAfterParent($data = null, int $referentRightKey, bool $returnID = true)
+    {
+        $this->db->transStart();
+        
+        $this->db->simpleQuery('UPDATE '. $this->table .'
+                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + 2
+                                WHERE '. $this->leftIdKey .' > '. $referentRightKey .'
+                                ORDER BY '. $this->leftIdKey .' desc;');        
+        $this->db->simpleQuery('UPDATE '. $this->table .'
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + 2
+                                WHERE '. $this->rightIdKey .' > '. $referentRightKey .'
+                                ORDER BY '. $this->rightIdKey .' desc;');        
+
+        $data[$this->leftIdKey] = $referentRightKey+1;
+        $data[$this->rightIdKey] = $referentRightKey+2;
+
+        if( ! parent::insert($data,$returnID)){
+            $this->db->transComplete();
+            return false;
+        }
+        $data[$this->primaryKey] = $this->insertID;
+        $result = $this->db->transComplete();
+        return $returnID ? $this->insertID : $result;
+    }
+
+    /**
+     * Inserts data at the end of a MPTT. If an object is provided,
+     * it will attempt to convert it to an array.
+     *
+     * @param array $data
+     * @param bool  $returnID Whether insert ID should be returned or not.
+     *
+     * @throws ReflectionException
+     *
+     * @return BaseResult|false|int|object|string
+     */
+    private function insertWithoutParent($data = null, bool $returnID = true)
     {
         $this->db->transStart();
         $lastElement = $this->select(''. $this->rightIdKey .'')
