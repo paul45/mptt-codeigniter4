@@ -155,7 +155,7 @@ class MpttModel extends Model
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->{rightIdKey} - $element->{$this->leftIdKey} + 1;
+        $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey} + 1;
 
         $reference = NULL;
         if ($referentId!=0)
@@ -163,7 +163,7 @@ class MpttModel extends Model
             $reference = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                                 ->find($referentId);
             $referenceLeft = $reference->{$this->leftIdKey};
-            $referenceRight = $reference->{rightIdKey};
+            $referenceRight = $reference->{$this->rightIdKey};
         }else{
             $referenceLeft = 0;
         }
