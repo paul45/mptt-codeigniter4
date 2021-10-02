@@ -189,15 +189,15 @@ class MpttModel extends Model
                                 WHERE '. $this->leftIdKey .' >= '. $newLocation .'
                                 ORDER BY '. $this->leftIdKey .' DESC;');
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->{rightIdKey} .' = '. $this->{rightIdKey} .' + '. $taille.'
-                                WHERE '. $this->{rightIdKey} .' >= '. $newLocation .'
-                                ORDER BY '. $this->{rightIdKey} .' DESC;');
+                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $taille.'
+                                WHERE '. $this->rightIdKey .' >= '. $newLocation .'
+                                ORDER BY '. $this->rightIdKey .' DESC;');
 
         // recalculate elements location
         if ($difference < 0)
         {
             $element->{$this->leftIdKey} = $element->{$this->leftIdKey} + $taille;
-            $element->{rightIdKey} = $element->{rightIdKey} + $taille;
+            $element->{$this->rightIdKey} = $element->{$this->rightIdKey} + $taille;
             $order = 'ASC';
             $difference = $difference - $taille;
         }else{
