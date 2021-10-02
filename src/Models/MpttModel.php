@@ -155,7 +155,7 @@ class MpttModel extends Model
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->rightIdKey - $element->{$this->leftIdKey} + 1;
+        $taille = $element->{rightIdKey} - $element->{$this->leftIdKey} + 1;
 
         $reference = NULL;
         if ($referentId!=0)
@@ -163,7 +163,7 @@ class MpttModel extends Model
             $reference = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                                 ->find($referentId);
             $referenceLeft = $reference->{$this->leftIdKey};
-            $referenceRight = $reference->rightIdKey;
+            $referenceRight = $reference->{rightIdKey};
         }else{
             $referenceLeft = 0;
         }
@@ -189,15 +189,15 @@ class MpttModel extends Model
                                 WHERE '. $this->leftIdKey .' >= '. $newLocation .'
                                 ORDER BY '. $this->leftIdKey .' DESC;');
         $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $taille.'
-                                WHERE '. $this->rightIdKey .' >= '. $newLocation .'
-                                ORDER BY '. $this->rightIdKey .' DESC;');
+                                SET '. $this->{rightIdKey} .' = '. $this->{rightIdKey} .' + '. $taille.'
+                                WHERE '. $this->{rightIdKey} .' >= '. $newLocation .'
+                                ORDER BY '. $this->{rightIdKey} .' DESC;');
 
         // recalculate elements location
         if ($difference < 0)
         {
             $element->{$this->leftIdKey} = $element->{$this->leftIdKey} + $taille;
-            $element->rightIdKey = $element->rightIdKey + $taille;
+            $element->{rightIdKey} = $element->{rightIdKey} + $taille;
             $order = 'ASC';
             $difference = $difference - $taille;
         }else{
@@ -207,13 +207,13 @@ class MpttModel extends Model
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + '. $difference .'
                                 WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .'
-                                AND '. $this->leftIdKey .' < '. $element->rightIdKey .'
+                                AND '. $this->leftIdKey .' < '. $element->{$this->rightIdKey} .'
                                 ORDER BY '. $this->leftIdKey .' '.$order.';');
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $difference .'
                                 WHERE '. $this->rightIdKey .' > '. $element->{$this->leftIdKey} .'
-                                AND '. $this->rightIdKey .' <= '. $element->rightIdKey .'
+                                AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .'
                                 ORDER BY '. $this->rightIdKey .' '.$order.';');
 
         //remove old space
@@ -224,7 +224,7 @@ class MpttModel extends Model
         
         $this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. $taille.'
-                                WHERE '. $this->rightIdKey .' >= '. $element->rightIdKey .'
+                                WHERE '. $this->rightIdKey .' >= '. $element->{$this->rightIdKey} .'
                                 ORDER BY '. $this->rightIdKey .' ASC;');
         
 
