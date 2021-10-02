@@ -55,7 +55,7 @@ class MpttModel extends Model
         if ($referentId != NULL)
         {
             $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
-                        ->find($data[$this->parentIdKey]);
+                        ->find($referentId);
 
             return $this->insertUnderParent($data, $parent->{$this->rightIdKey}, $returnID);
         } else
@@ -83,7 +83,7 @@ class MpttModel extends Model
         if ($referentId != NULL)
         {
             $parent = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
-                        ->find($data[$this->parentIdKey]);
+                        ->find($referentId);
 
             return $this->insertAfterParent($data, $parent->{$this->rightIdKey}, $returnID);
         } else
