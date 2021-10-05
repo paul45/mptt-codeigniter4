@@ -116,7 +116,7 @@ class MpttModel extends Model
                                 WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
                                     AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');
         $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->leftIdKey => $this->leftIdKey .' - '. ($taille)])
+             ->set([$this->leftIdKey => $this->leftIdKey .' - '. $taille])
              ->orderBy($this->leftIdKey, 'ASC')
              ->update();                            
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
@@ -124,7 +124,7 @@ class MpttModel extends Model
                                 WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
                                 ORDER BY '. $this->leftIdKey .' ;');*/
         $this->where($this->rightIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->rightIdKey => $this->rightIdKey .' - '. ($taille)])
+             ->set([$this->rightIdKey => $this->rightIdKey .' - '. $taille])
              ->orderBy($this->rightIdKey, 'ASC')
              ->update(); 
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
