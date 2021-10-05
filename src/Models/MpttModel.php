@@ -104,22 +104,25 @@ class MpttModel extends Model
      */
     public function delete($id = NULL, bool $purge = true)
     {
-        $this->db->transStart();
+        $this->transStart();
         $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                             ->find($id);
         if($element == null){
-            $this->db->transComplete();
+            $this->transComplete();
             return false;
         }
         $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey} + 1;
-        $this->db->simpleQuery('DELETE FROM '. $this->table .'
+
+        $this->where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
+             ->where($this->rightIdKey .' <= ', $element->{$this->rightIdKey})
+             ->delete(); 
+        /*$this->db->simpleQuery('DELETE FROM '. $this->table .'
                                 WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
-                                    AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');
+                                    AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');*/
         $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
              ->set([$this->leftIdKey => $this->leftIdKey .' - '. $taille])
              ->orderBy($this->leftIdKey, 'ASC')
              ->update();              
-        echo $this->getLastQuery();              
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
@@ -128,16 +131,15 @@ class MpttModel extends Model
              ->set([$this->rightIdKey => $this->rightIdKey .' - '. $taille])
              ->orderBy($this->rightIdKey, 'ASC')
              ->update(); 
-             echo $this->getLastQuery();   
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->rightIdKey .' > '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->rightIdKey .' ;');    */ 
+                                ORDER BY '. $this->rightIdKey .' ;');     
         if( ! parent::delete($id, $purge)){
             $this->db->transComplete();
             return false;
-        }
-        $this->db->transComplete();
+        }*/
+        $this->transComplete();
         return $this->db->transStatus();
     }
     
