@@ -118,7 +118,8 @@ class MpttModel extends Model
         $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
              ->set([$this->leftIdKey => $this->leftIdKey .' - '. $taille])
              ->orderBy($this->leftIdKey, 'ASC')
-             ->update();                            
+             ->update();              
+        echo $this->getLastQuery();              
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
@@ -127,6 +128,7 @@ class MpttModel extends Model
              ->set([$this->rightIdKey => $this->rightIdKey .' - '. $taille])
              ->orderBy($this->rightIdKey, 'ASC')
              ->update(); 
+             echo $this->getLastQuery();   
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->rightIdKey .' > '. $element->{$this->rightIdKey} .'
