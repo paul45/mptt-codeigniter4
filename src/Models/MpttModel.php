@@ -119,14 +119,22 @@ class MpttModel extends Model
         $this->db->simpleQuery('DELETE FROM '. $this->table .'
                                 WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
                                     AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');
-        $this->db->simpleQuery('UPDATE '. $this->table .'
+        $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
+             ->set([$this->leftIdKey => $this->leftIdKey .' - '. ($taille+1)])
+             ->orderBy($this->leftIdKey, 'ASC')
+             ->update();                            
+        /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->leftIdKey .' ;');
-        $this->db->simpleQuery('UPDATE '. $this->table .'
+                                ORDER BY '. $this->leftIdKey .' ;');*/
+        $this->where($this->rightIdKey .' > ', $element->{$this->rightIdKey})
+             ->set([$this->rightIdKey => $this->rightIdKey .' - '. ($taille+1)])
+             ->orderBy($this->rightIdKey, 'ASC')
+             ->update(); 
+        /*$this->db->simpleQuery('UPDATE '. $this->table .'
                                 SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. ($taille+1).'
                                 WHERE '. $this->rightIdKey .' > '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->rightIdKey .' ;');     
+                                ORDER BY '. $this->rightIdKey .' ;');    */ 
         if( ! parent::delete($id, $purge)){
             $this->db->transComplete();
             return false;
