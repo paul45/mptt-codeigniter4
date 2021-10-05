@@ -113,7 +113,7 @@ class MpttModel extends Model
         }
         $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey} + 1;
 
-        $this->where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
+        parent::where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
              ->where($this->rightIdKey .' <= ', $element->{$this->rightIdKey})
              ->delete(); 
         /*$this->db->simpleQuery('DELETE FROM '. $this->table .'
