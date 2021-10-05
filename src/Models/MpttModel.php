@@ -104,10 +104,6 @@ class MpttModel extends Model
      */
     public function delete($id = NULL, bool $purge = true)
     {
-        if ($id && (is_numeric($id) || is_string($id))) {
-            $id = [$id];
-        }
-
         $this->db->transStart();
         $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
                             ->find($id);
