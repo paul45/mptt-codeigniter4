@@ -111,12 +111,12 @@ class MpttModel extends Model
             $this->db->transComplete();
             return false;
         }
-        $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey};
+        $taille = $element->{$this->rightIdKey} - $element->{$this->leftIdKey} + 1;
         $this->db->simpleQuery('DELETE FROM '. $this->table .'
                                 WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
                                     AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');
         $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->leftIdKey => $this->leftIdKey .' - '. ($taille+1)])
+             ->set([$this->leftIdKey => $this->leftIdKey .' - '. ($taille)])
              ->orderBy($this->leftIdKey, 'ASC')
              ->update();                            
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
@@ -124,7 +124,7 @@ class MpttModel extends Model
                                 WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
                                 ORDER BY '. $this->leftIdKey .' ;');*/
         $this->where($this->rightIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->rightIdKey => $this->rightIdKey .' - '. ($taille+1)])
+             ->set([$this->rightIdKey => $this->rightIdKey .' - '. ($taille)])
              ->orderBy($this->rightIdKey, 'ASC')
              ->update(); 
         /*$this->db->simpleQuery('UPDATE '. $this->table .'
