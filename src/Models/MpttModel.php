@@ -115,30 +115,19 @@ class MpttModel extends Model
 
         $this->where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
              ->where($this->rightIdKey .' <= ', $element->{$this->rightIdKey});
+
         parent::delete(); 
-        /*$this->db->simpleQuery('DELETE FROM '. $this->table .'
-                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .' 
-                                    AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .';');*/
+
         $this->where($this->leftIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->leftIdKey => $this->leftIdKey .' - '. $taille], false)
+             ->set($this->leftIdKey, $this->leftIdKey .' - '. $taille, false)
              ->orderBy($this->leftIdKey, 'ASC')
-             ->update();              
-        /*$this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. ($taille+1).'
-                                WHERE '. $this->leftIdKey .' > '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->leftIdKey .' ;');*/
+             ->update(); 
+
         $this->where($this->rightIdKey .' > ', $element->{$this->rightIdKey})
-             ->set([$this->rightIdKey => $this->rightIdKey .' - '. $taille], false)
+             ->set($this->rightIdKey, $this->rightIdKey .' - '. $taille, false)
              ->orderBy($this->rightIdKey, 'ASC')
              ->update(); 
-        /*$this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. ($taille+1).'
-                                WHERE '. $this->rightIdKey .' > '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->rightIdKey .' ;');     
-        if( ! parent::delete($id, $purge)){
-            $this->db->transComplete();
-            return false;
-        }*/
+
         $this->transComplete();
         return $this->db->transStatus();
     }
@@ -154,7 +143,7 @@ class MpttModel extends Model
      *
      * @return BaseResult|false|int|object|string
      */
-    public function deplacer($id, $position, $referentId)
+    public function move($id, $position, $referentId)
     {
         $this->db->transStart();
         $element = $this->select(''. $this->leftIdKey .','. $this->rightIdKey .'')
@@ -190,16 +179,17 @@ class MpttModel extends Model
                 $newLocation = $referenceLeft + 1;
                 break;
         }
-
+        echo $taille;
         //Create new location space
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + '. $taille.'
-                                WHERE '. $this->leftIdKey .' >= '. $newLocation .'
-                                ORDER BY '. $this->leftIdKey .' DESC;');
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $taille.'
-                                WHERE '. $this->rightIdKey .' >= '. $newLocation .'
-                                ORDER BY '. $this->rightIdKey .' DESC;');
+        $this->where($this->leftIdKey .' >= ', $newLocation)
+             ->set($this->leftIdKey, $this->leftIdKey .' + '. $taille, false)
+             ->orderBy($this->leftIdKey, 'DESC')
+             ->update(); 
+             
+        $this->where($this->rightIdKey .' > ', $newLocation)
+             ->set($this->rightIdKey, $this->rightIdKey .' + '. $taille, false)
+             ->orderBy($this->rightIdKey, 'DESC')
+             ->update(); 
 
         // recalculate elements location
         if ($difference < 0)
@@ -212,28 +202,27 @@ class MpttModel extends Model
             $order = 'DESC';
         }
         //move elements into new location
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + '. $difference .'
-                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .'
-                                AND '. $this->leftIdKey .' < '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->leftIdKey .' '.$order.';');
+        $this->where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
+             ->where($this->leftIdKey .' < ', $element->{$this->rightIdKey})
+             ->set($this->leftIdKey, $this->leftIdKey .' + '. $difference, false)
+             ->orderBy($this->leftIdKey, $order)
+             ->update(); 
         
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + '. $difference .'
-                                WHERE '. $this->rightIdKey .' > '. $element->{$this->leftIdKey} .'
-                                AND '. $this->rightIdKey .' <= '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->rightIdKey .' '.$order.';');
+        $this->where($this->rightIdKey .' > ', $element->{$this->leftIdKey})
+             ->where($this->rightIdKey .' <= ', $element->{$this->rightIdKey})
+             ->set($this->rightIdKey, $this->rightIdKey .' + '. $difference, false)
+             ->orderBy($this->rightIdKey, $order)
+             ->update(); 
 
         //remove old space
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' - '. $taille.'
-                                WHERE '. $this->leftIdKey .' >= '. $element->{$this->leftIdKey} .'
-                                ORDER BY '. $this->leftIdKey .' ASC;');
-        
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' - '. $taille.'
-                                WHERE '. $this->rightIdKey .' >= '. $element->{$this->rightIdKey} .'
-                                ORDER BY '. $this->rightIdKey .' ASC;');
+        $this->where($this->leftIdKey .' >= ', $element->{$this->leftIdKey})
+            ->set($this->leftIdKey, $this->leftIdKey .' - '. $taille, false)
+            ->orderBy($this->leftIdKey, 'ASC')
+            ->update();
+        $this->where($this->rightIdKey .' >= ', $element->{$this->rightIdKey})
+            ->set($this->rightIdKey, $this->rightIdKey .' - '. $taille, false)
+            ->orderBy($this->rightIdKey, 'ASC')
+            ->update(); 
         
 
         $this->db->transComplete();
@@ -259,14 +248,15 @@ class MpttModel extends Model
     {
         $this->db->transStart();
         
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + 2
-                                WHERE '. $this->leftIdKey .' > '. $parentRightKey .'
-                                ORDER BY '. $this->leftIdKey .' desc;');        
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + 2
-                                WHERE '. $this->rightIdKey .' >= '. $parentRightKey .'
-                                ORDER BY '. $this->rightIdKey .' desc;');        
+        $this->where($this->leftIdKey .' > ', $parentRightKey)
+            ->set($this->leftIdKey, $this->leftIdKey .' + 2', false)
+            ->orderBy($this->leftIdKey, 'desc')
+            ->update();
+
+        $this->where($this->rightIdKey .' >= ', $parentRightKey)
+            ->set($this->rightIdKey, $this->rightIdKey .' + 2', false)
+            ->orderBy($this->rightIdKey, 'desc')
+            ->update();     
 
         $data[$this->leftIdKey] = $parentRightKey;
         $data[$this->rightIdKey] = $parentRightKey+1;
@@ -294,15 +284,17 @@ class MpttModel extends Model
     private function insertAfterParent($data = null, int $referentRightKey, bool $returnID = true)
     {
         $this->db->transStart();
-        
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->leftIdKey .' = '. $this->leftIdKey .' + 2
-                                WHERE '. $this->leftIdKey .' > '. $referentRightKey .'
-                                ORDER BY '. $this->leftIdKey .' desc;');        
-        $this->db->simpleQuery('UPDATE '. $this->table .'
-                                SET '. $this->rightIdKey .' = '. $this->rightIdKey .' + 2
-                                WHERE '. $this->rightIdKey .' > '. $referentRightKey .'
-                                ORDER BY '. $this->rightIdKey .' desc;');        
+          
+                                
+        $this->where($this->rightIdKey .' > ', $referentRightKey)
+            ->set($this->rightIdKey, $this->rightIdKey .' + 2', false)
+            ->orderBy($this->rightIdKey, 'desc')
+            ->update();    
+             
+        $this->where($this->rightIdKey .' > ', $referentRightKey)
+            ->set($this->rightIdKey, $this->rightIdKey .' + 2', false)
+            ->orderBy($this->rightIdKey, 'desc')
+            ->update();       
 
         $data[$this->leftIdKey] = $referentRightKey+1;
         $data[$this->rightIdKey] = $referentRightKey+2;
