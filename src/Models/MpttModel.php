@@ -186,7 +186,7 @@ class MpttModel extends Model
              ->orderBy($this->leftIdKey, 'DESC')
              ->update(); 
              
-        $this->where($this->rightIdKey .' > ', $newLocation)
+        $this->where($this->rightIdKey .' >= ', $newLocation)
              ->set($this->rightIdKey, $this->rightIdKey .' + '. $taille, false)
              ->orderBy($this->rightIdKey, 'DESC')
              ->update(); 
